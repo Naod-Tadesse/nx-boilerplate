@@ -1,0 +1,1 @@
+ALTER TABLE "customers" DROP COLUMN "national_id_photo_url";

@@ -1,0 +1,151 @@
+# Local: full stack including postgres + rabbitmq + all microservices.
+# Apps share a single image built from ./Dockerfile and select which to run via `command`.
+#
+# Run from repo root: docker compose up --build -d
+# Env: each service's `environment:` block uses `KEY=${KEY}` so values come from
+# the shell / .env / Coolify shared variables at deploy time. Define them in
+# Coolify's Shared Variables (project scope) to edit each value in one place.
+# DATABASE_URL/RABBITMQ_URL must use the container hostnames (postgres, rabbitmq)
+# since services run inside the network.
+# Schema migrations are applied manually against the DB (see packages/database/drizzle/) — not via a container.
+
+services:
+
+  # ============ Microservices ============
+
+  authentication:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ${DOCKER_REGISTRY:-}ekos-platform:${IMAGE_TAG:-latest}
+    container_name: ekos-authentication
+    restart: unless-stopped
+    command: ['node', 'dist/apps/authentication/main.js']
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
+      - RABBITMQ_URL=${RABBITMQ_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRATION=${JWT_EXPIRATION}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
+      - JWT_REFRESH_EXPIRATION=${JWT_REFRESH_EXPIRATION}
+    networks:
+      - ekos-network
+      - coolify
+      - rabbitmq-net
+
+  application:
+    image: ${DOCKER_REGISTRY:-}ekos-platform:${IMAGE_TAG:-latest}
+    container_name: ekos-application
+    restart: unless-stopped
+    command: ['node', 'dist/apps/application/main.js']
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
+      - RABBITMQ_URL=${RABBITMQ_URL}
+      - JWT_SECRET=${JWT_SECRET}
+    depends_on:
+      authentication:
+        condition: service_started
+    networks:
+      - ekos-network
+      - coolify
+      - rabbitmq-net
+
+  notification:
+    image: ${DOCKER_REGISTRY:-}ekos-platform:${IMAGE_TAG:-latest}
+    container_name: ekos-notification
+    restart: unless-stopped
+    command: ['node', 'dist/apps/notification/main.js']
+    environment:
+      - NODE_ENV=production
+      - RABBITMQ_URL=${RABBITMQ_URL}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_SECURE=${SMTP_SECURE}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      - EMAIL_FROM=${EMAIL_FROM}
+      - FRONTEND_URL=${FRONTEND_URL}
+    networks:
+      - ekos-network
+      - coolify
+      - rabbitmq-net
+
+  settings:
+    image: ${DOCKER_REGISTRY:-}ekos-platform:${IMAGE_TAG:-latest}
+    container_name: ekos-settings
+    restart: unless-stopped
+    command: ['node', 'dist/apps/settings/main.js']
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
+      - RABBITMQ_URL=${RABBITMQ_URL}
+    networks:
+      - ekos-network
+      - coolify
+      - rabbitmq-net
+
+  api-gateway:
+    image: ${DOCKER_REGISTRY:-}ekos-platform:${IMAGE_TAG:-latest}
+    container_name: ekos-api-gateway
+    restart: unless-stopped
+    command: ['node', 'dist/apps/api-gateway/main.js']
+    ports:
+      - '${PORT:-3100}:${PORT:-3100}'
+    environment:
+      - NODE_ENV=production
+      - PORT=${PORT}
+      - RABBITMQ_URL=${RABBITMQ_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
+      - TRUSTED_ORIGINS=${TRUSTED_ORIGINS}
+      - VITE_BASE_URL=${VITE_BASE_URL}
+    volumes:
+      - uploads-data:/app/uploads
+    depends_on:
+      authentication:
+        condition: service_started
+      application:
+        condition: service_started
+      notification:
+        condition: service_started
+      settings:
+        condition: service_started
+    networks:
+      - ekos-network
+      - coolify
+      - rabbitmq-net
+
+  # ============ Frontend ============
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      args:
+        VITE_BASE_URL: ${VITE_BASE_URL}
+    image: ${DOCKER_REGISTRY:-}ekos-frontend:${IMAGE_TAG:-latest}
+    container_name: ekos-frontend
+    restart: unless-stopped
+    expose:
+      - '80'
+    depends_on:
+      api-gateway:
+        condition: service_started
+    networks:
+      - ekos-network
+      - coolify
+
+volumes:
+  uploads-data:
+
+networks:
+  ekos-network:
+    driver: bridge
+  coolify:
+    external: true
+    name: coolify
+  rabbitmq-net:
+    external: true
+    name: s9dutjimrww3btnw7ggodum5

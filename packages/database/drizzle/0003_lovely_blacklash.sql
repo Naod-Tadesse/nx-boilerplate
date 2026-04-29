@@ -1,0 +1,1 @@
+ALTER TABLE "permissions" ADD COLUMN "group" varchar(100) NOT NULL;

@@ -1,0 +1,83 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1772353323389,
+      "tag": "0000_many_sugar_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1772353876231,
+      "tag": "0001_sour_lilandra",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1772472939224,
+      "tag": "0002_clear_monster_badoon",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1772475353287,
+      "tag": "0003_lovely_blacklash",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1772476054344,
+      "tag": "0004_open_gargoyle",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1772547688823,
+      "tag": "0005_rare_celestials",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1772550204545,
+      "tag": "0006_amusing_red_hulk",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1773479647599,
+      "tag": "0007_big_rattler",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1773579793876,
+      "tag": "0008_stormy_firelord",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1775045600238,
+      "tag": "0009_lyrical_warbound",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1775053416457,
+      "tag": "0010_dazzling_guardian",
+      "breakpoints": true
+    }
+  ]
+}

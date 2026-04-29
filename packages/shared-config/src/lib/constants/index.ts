@@ -1,0 +1,1 @@
+export const FLOATING_LABEL_CLASS = "floating-label";

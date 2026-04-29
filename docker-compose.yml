@@ -1,0 +1,29 @@
+version: '3.8'
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"    # AMQP port
+      - "15672:15672"  # Management UI
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=admin
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=ekos
+      - POSTGRES_PASSWORD=ekos
+      - POSTGRES_DB=ekos_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  rabbitmq_data:
+  postgres_data:
