@@ -19,15 +19,11 @@ RUN npx nx sync
 RUN npx nx run-many -t build --projects=@org/database,@org/shared-config,@org/ui --configuration=production --parallel=1
 
 # Build apps (libs ready); run in parallel to avoid timeout.
-RUN npx nx run-many -t build --projects=@org/api-gateway,@org/application,@org/authentication,@org/notification,@org/settings --configuration=production
+RUN npx nx run-many -t build --projects=@org/backend --configuration=production
 
 # Nx/Webpack output is per-app (apps/<name>/dist/). Assemble into dist/apps/<name>/ for runtime.
 RUN mkdir -p dist/apps && \
-  cp -r apps/backend/api-gateway/dist dist/apps/api-gateway && \
-  cp -r apps/backend/authentication/dist dist/apps/authentication && \
-  cp -r apps/backend/application/dist dist/apps/application && \
-  cp -r apps/backend/notification/dist dist/apps/notification && \
-  cp -r apps/backend/settings/dist dist/apps/settings
+  cp -r apps/backend/dist dist/apps/backend
 
 
 # Production stage
@@ -46,7 +42,7 @@ RUN npm ci --only=production && npm cache clean --force
 COPY .env* ./
 
 # Copy api-gateway assets for Swagger (since we use readFileSync in main.ts)
-COPY --from=builder /app/apps/backend/api-gateway/src/assets ./apps/api-gateway/src/assets
+COPY --from=builder /app/apps/backend/src/assets ./apps/backend/src/assets
 
 # Copy built applications from builder
 COPY --from=builder /app/dist ./dist
@@ -60,16 +56,16 @@ RUN printf '%s' '{"name":"@org/database","main":"./dist/index.js","type":"common
     printf '%s' '{"name":"@org/shared-config","main":"./dist/index.js","type":"commonjs"}' > node_modules/@org/shared-config/package.json
 
 # Create non-root user
-RUN groupadd -g 1001 sims && \
-  useradd -m -u 1001 -g sims simsuser
+RUN groupadd -g 1001 proj && \
+  useradd -m -u 1001 -g proj projuser
 
 # Create uploads directory and own it for the app user
-RUN mkdir -p /app/uploads && chown -R simsuser:sims /app/uploads
+RUN mkdir -p /app/uploads && chown -R projuser:proj /app/uploads
 
-# Own app dir so simsuser can read dist and node_modules
-RUN chown -R simsuser:sims /app
+# Own app dir so projuser can read dist and node_modules
+RUN chown -R projuser:proj /app
 
-USER simsuser
+USER projuser
 
 # Expose API gateway default port (override with PORT env)
 EXPOSE 3100
